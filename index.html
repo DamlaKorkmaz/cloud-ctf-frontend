@@ -3,48 +3,61 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Bulut CSV API Test</title>
+  <title>Bulut Kaşifleri — Veri Görüntüleme</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    button { padding: 8px 16px; cursor: pointer; }
-    table { border-collapse: collapse; margin-top: 20px; width: 100%; }
-    th, td { border: 1px solid #ccc; padding: 8px; }
-    th { background-color: #f2f2f2; }
+    body { font-family: system-ui, Arial; padding: 20px; max-width: 900px; margin: auto; }
+    .row { margin-top: 12px; }
+    button { padding: 8px 14px; cursor: pointer; }
+    input { padding: 8px; width: 220px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 16px; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    th { background: #f5f5f5; text-align: left; }
+    pre { white-space: pre-wrap; }
   </style>
 </head>
 <body>
+  <h1>Bulut Kaşifleri</h1>
+  <p>Küçük ama gerçek bir bulut uygulaması — CSV → API → Frontend</p>
 
-<h1>Veri Görüntüleme</h1>
-<button onclick="verileriGetir()">Verileri Getir</button>
+  <div class="row">
+    <input id="filter" placeholder="Filtre (örn. İstanbul, Damla)" />
+    <button id="btn">Verileri Getir</button>
+  </div>
 
-<table id="veriTablosu"></table>
+  <table id="tbl"></table>
+  <pre id="msg"></pre>
 
 <script>
-async function verileriGetir() {
-  const API_URL = "https://bulut-csv-api.damlak0rkm6z.workers.dev/"; // senin API linkin
+const API = "https://bulut-csv-api.damlak0rkm6z.workers.dev/"; // Worker URL'in
+
+document.getElementById("btn").addEventListener("click", async () => {
+  const q = document.getElementById("filter").value.trim();
+  const url = q ? `${API}?filter=${encodeURIComponent(q)}` : API;
+
+  document.getElementById("msg").textContent = "Yükleniyor...";
+  document.getElementById("tbl").innerHTML = "";
+
   try {
-    const res = await fetch(API_URL);
-    if (!res.ok) throw new Error("API isteği başarısız");
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`API hatası: ${res.status}`);
     const data = await res.json();
 
     if (!Array.isArray(data) || data.length === 0) {
-      document.getElementById("veriTablosu").innerHTML = "<tr><td>Veri bulunamadı</td></tr>";
+      document.getElementById("msg").textContent = "Kayıt bulunamadı.";
       return;
     }
 
-    let headers = Object.keys(data[0]);
-    let tableHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join('') + "</tr>";
-    tableHTML += data.map(row => {
-      return "<tr>" + headers.map(h => `<td>${row[h] ?? ''}</td>`).join('') + "</tr>";
-    }).join('');
+    const headers = Object.keys(data[0]);
+    let html = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
+    html += data.map(row => "<tr>" + headers.map(h => `<td>${row[h] ?? ""}</td>`).join("") + "</tr>").join("");
 
-    document.getElementById("veriTablosu").innerHTML = tableHTML;
-  } catch (err) {
-    console.error(err);
-    document.getElementById("veriTablosu").innerHTML = "<tr><td>Hata: " + err.message + "</td></tr>";
+    document.getElementById("tbl").innerHTML = html;
+    document.getElementById("msg").textContent = "";
+  } catch (e) {
+    document.getElementById("msg").textContent = "Hata: " + e.message +
+      "\n(DevTools → Console/Network ile ayrıntıya bakabilirsin)";
   }
-}
+});
 </script>
-
 </body>
 </html>
