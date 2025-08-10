@@ -1,12 +1,50 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <title>Bulut Kaşifleri</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bulut CSV API Test</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    button { padding: 8px 16px; cursor: pointer; }
+    table { border-collapse: collapse; margin-top: 20px; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; }
+    th { background-color: #f2f2f2; }
+  </style>
 </head>
 <body>
-    <h1>Bulut Kaşifleri</h1>
-    <p>Küçük ama güçlü bulut uygulaması</p>
-    <button>Verileri Getir</button>
+
+<h1>Veri Görüntüleme</h1>
+<button onclick="verileriGetir()">Verileri Getir</button>
+
+<table id="veriTablosu"></table>
+
+<script>
+async function verileriGetir() {
+  const API_URL = "https://bulut-csv-api.damlak0rkm6z.workers.dev/"; // senin API linkin
+  try {
+    const res = await fetch(API_URL);
+    if (!res.ok) throw new Error("API isteği başarısız");
+    const data = await res.json();
+
+    if (!Array.isArray(data) || data.length === 0) {
+      document.getElementById("veriTablosu").innerHTML = "<tr><td>Veri bulunamadı</td></tr>";
+      return;
+    }
+
+    let headers = Object.keys(data[0]);
+    let tableHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join('') + "</tr>";
+    tableHTML += data.map(row => {
+      return "<tr>" + headers.map(h => `<td>${row[h] ?? ''}</td>`).join('') + "</tr>";
+    }).join('');
+
+    document.getElementById("veriTablosu").innerHTML = tableHTML;
+  } catch (err) {
+    console.error(err);
+    document.getElementById("veriTablosu").innerHTML = "<tr><td>Hata: " + err.message + "</td></tr>";
+  }
+}
+</script>
+
 </body>
 </html>
